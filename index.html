@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dental PMS Firebase Starter</title>
+
+  <!--
+    Dental PMS Firebase Starter
+    --------------------------------------
+    Single-file HTML app for GitHub + Netlify/Firebase Hosting/GoDaddy static hosting.
+
+    IMPORTANT:
+    This is an MVP starter, not a HIPAA-certified replacement for OpenDental.
+    Do not store real patient data until your Firebase rules, access controls,
+    audit logging, backups, and legal/compliance review are properly completed.
+  -->
+
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --panel-2: #f9fbff;
+      --text: #152238;
+      --muted: #68758a;
+      --border: #d9e2ef;
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --purple: #7c3aed;
+      --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      border-radius: 12px;
+      padding: 10px 14px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      transition: 0.2s ease;
+    }
+
+    button:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    button.secondary { background: #e8eef8; color: var(--text); }
+    button.secondary:hover { background: #dbe6f6; }
+    button.danger { background: var(--danger); }
+    button.success { background: var(--success); }
+    button.warning { background: var(--warning); }
+    button.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    button.small { padding: 7px 10px; font-size: 12px; border-radius: 10px; }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    textarea { min-height: 92px; resize: vertical; }
+
+    .hidden { display: none !important; }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: #0f172a;
+      color: #fff;
+      padding: 22px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.2;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: #a6b4ce;
+      font-size: 12px;
+    }
+
+    .nav-section-title {
+      color: #94a3b8;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 24px 0 10px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 7px;
+      font-weight: 700;
+    }
+
+    .nav-btn:hover, .nav-btn.active {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      transform: none;
+    }
+
+    .main {
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .topbar p {
+      margin: 5px 0 0;
+      color: var(--muted);
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--panel);
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .card h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .stat-card {
+      padding: 18px;
+      border-radius: var(--radius);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .stat-card .label { color: var(--muted); font-size: 13px; }
+    .stat-card .value { font-size: 30px; font-weight: 900; margin-top: 6px; }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .toolbar .search { min-width: 260px; flex: 1; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      font-size: 14px;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f2f6fc;
+      color: #41516a;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:hover td { background: #fbfdff; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 12px;
+      font-weight: 800;
+      background: #e8eef8;
+      color: #334155;
+    }
+
+    .badge.success { background: #dcfce7; color: #166534; }
+    .badge.warning { background: #fef3c7; color: #92400e; }
+    .badge.danger { background: #fee2e2; color: #991b1b; }
+    .badge.primary { background: #dbeafe; color: #1e40af; }
+    .badge.purple { background: #ede9fe; color: #5b21b6; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .form-row.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .form-row.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      z-index: 50;
+    }
+
+    .modal {
+      width: min(920px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      background: var(--panel);
+      border-radius: 22px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+      padding: 20px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .modal-header h3 { margin: 0; font-size: 22px; }
+    .modal-header p { margin: 4px 0 0; color: var(--muted); }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .tab {
+      background: #eef4ff;
+      color: #1f2937;
+    }
+
+    .tab.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .patient-banner {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .patient-banner .box {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .box .title { color: var(--muted); font-size: 12px; font-weight: 800; }
+    .box .content { margin-top: 5px; font-weight: 900; }
+
+    .tooth-chart {
+      display: grid;
+      gap: 8px;
+    }
+
+    .arch {
+      display: grid;
+      grid-template-columns: repeat(16, minmax(34px, 1fr));
+      gap: 6px;
+    }
+
+    .tooth {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 8px 4px;
+      min-height: 44px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .tooth.selected { background: #dbeafe; border-color: var(--primary); color: var(--primary-dark); }
+    .tooth.treatment { background: #fef3c7; border-color: #f59e0b; }
+    .tooth.completed { background: #dcfce7; border-color: #22c55e; }
+    .tooth.problem { background: #fee2e2; border-color: #ef4444; }
+
+    .login-screen {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: radial-gradient(circle at top left, #dbeafe, transparent 35%), radial-gradient(circle at bottom right, #ede9fe, transparent 40%), #f8fafc;
+    }
+
+    .login-card {
+      width: min(460px, 100%);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+      padding: 26px;
+    }
+
+    .login-card h1 { margin: 0 0 6px; }
+    .login-card p { margin: 0 0 18px; color: var(--muted); }
+
+    .notice {
+      border-radius: 14px;
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      color: #1e3a8a;
+      padding: 12px;
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+
+    .danger-note {
+      border-color: #fecaca;
+      background: #fef2f2;
+      color: #991b1b;
+    }
+
+    .calendar-board {
+      display: grid;
+      grid-template-columns: 120px repeat(5, minmax(160px, 1fr));
+      gap: 8px;
+      overflow-x: auto;
+    }
+
+    .calendar-head, .time-slot, .appt-slot {
+      padding: 10px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      min-height: 48px;
+    }
+
+    .calendar-head {
+      background: #e8eef8;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .time-slot {
+      font-weight: 900;
+      color: var(--muted);
+      background: #f8fafc;
+    }
+
+    .appt-chip {
+      border-radius: 10px;
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .timeline-item {
+      border-left: 4px solid var(--primary);
+      padding: 10px 12px;
+      background: #f8fafc;
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+
+    .timeline-item .meta { color: var(--muted); font-size: 12px; font-weight: 800; }
+    .timeline-item .body { margin-top: 5px; white-space: pre-wrap; }
+
+    @media (max-width: 980px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+      .grid-2, .grid-3, .grid-4, .patient-banner, .form-row, .form-row.three, .form-row.four { grid-template-columns: 1fr; }
+      .topbar { flex-direction: column; align-items: flex-start; }
+      .arch { grid-template-columns: repeat(8, minmax(34px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="brand" style="color:#152238; margin-bottom:18px;">
+        <div class="brand-logo">🦷</div>
+        <div>
+          <h1>Dental PMS</h1>
+          <p>Firebase-powered clinic starter</p>
+        </div>
+      </div>
+
+      <div class="notice danger-note">
+        This is a starter PMS app. Do not store real PHI/patient data until security rules, backups, access controls, and compliance review are finished.
+      </div>
+
+      <div id="firebaseStatus" class="notice">
+        Firebase is currently in placeholder mode. Add your Firebase config inside the script section before using online sync.
+      </div>
+
+      <div class="grid" style="gap:12px;">
+        <div>
+          <label>Email</label>
+          <input id="loginEmail" type="email" placeholder="admin@clinic.com" />
+        </div>
+        <div>
+          <label>Password</label>
+          <input id="loginPassword" type="password" placeholder="Password" />
+        </div>
+        <button onclick="login()">Sign In</button>
+        <button class="secondary" onclick="demoLogin()">Use Demo Mode</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="app" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">🦷</div>
+        <div>
+          <h1>Dental PMS</h1>
+          <p id="clinicNameDisplay">Clinic Dashboard</p>
+        </div>
+      </div>
+
+      <div class="nav-section-title">Main</div>
+      <button class="nav-btn active" data-page="dashboard" onclick="showPage('dashboard')">📊 Dashboard</button>
+      <button class="nav-btn" data-page="patients" onclick="showPage('patients')">👤 Patients</button>
+      <button class="nav-btn" data-page="appointments" onclick="showPage('appointments')">📅 Appointments</button>
+      <button class="nav-btn" data-page="charting" onclick="showPage('charting')">🦷 Charting</button>
+      <button class="nav-btn" data-page="treatment" onclick="showPage('treatment')">📝 Treatment Plans</button>
+      <button class="nav-btn" data-page="billing" onclick="showPage('billing')">💳 Billing</button>
+      <button class="nav-btn" data-page="commlog" onclick="showPage('commlog')">💬 Commlog</button>
+      <button class="nav-btn" data-page="tasks" onclick="showPage('tasks')">✅ Tasks</button>
+      <button class="nav-btn" data-page="reports" onclick="showPage('reports')">📈 Reports</button>
+
+      <div class="nav-section-title">System</div>
+      <button class="nav-btn" data-page="settings" onclick="showPage('settings')">⚙️ Settings</button>
+      <button class="nav-btn" onclick="backupData()">⬇️ Export Backup</button>
+      <button class="nav-btn" onclick="document.getElementById('restoreFile').click()">⬆️ Import Backup</button>
+      <input id="restoreFile" type="file" accept="application/json" class="hidden" onchange="restoreData(event)" />
+      <button class="nav-btn" onclick="logout()">🚪 Sign Out</button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2 id="pageTitle">Dashboard</h2>
+          <p id="pageSubtitle">Clinic overview and daily activity</p>
+        </div>
+        <div class="user-pill">
+          <span>👋</span>
+          <strong id="currentUserDisplay">Demo User</strong>
+        </div>
+      </div>
+
+      <section id="page-dashboard" class="page"></section>
+      <section id="page-patients" class="page hidden"></section>
+      <section id="page-appointments" class="page hidden"></section>
+      <section id="page-charting" class="page hidden"></section>
+      <section id="page-treatment" class="page hidden"></section>
+      <section id="page-billing" class="page hidden"></section>
+      <section id="page-commlog" class="page hidden"></section>
+      <section id="page-tasks" class="page hidden"></section>
+      <section id="page-reports" class="page hidden"></section>
+      <section id="page-settings" class="page hidden"></section>
+    </main>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3 id="modalTitle">Modal</h3>
+          <p id="modalSubtitle"></p>
+        </div>
+        <button class="secondary" onclick="closeModal()">Close</button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    /***********************************************************************
+     * FIREBASE CONNECTION PLACEHOLDER
+     * -------------------------------------------------------------------
+     * 1. Go to Firebase Console > Project Settings > Your apps > Web app
+     * 2. Replace the config below.
+     * 3. Enable Authentication > Email/Password.
+     * 4. Enable Firestore Database.
+     ***********************************************************************/
+
+    const firebaseConfig = {
+      apiKey: "PASTE_YOUR_API_KEY_HERE",
+      authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
+      projectId: "PASTE_YOUR_PROJECT_ID",
+      storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
+      messagingSenderId: "PASTE_YOUR_SENDER_ID",
+      appId: "PASTE_YOUR_APP_ID"
+    };
+
+    let firebaseReady = false;
+    let firebaseApp = null;
+    let auth = null;
+    let db = null;
+    let currentUser = null;
+
+    try {
+      if (!firebaseConfig.apiKey.includes("PASTE_")) {
+        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
+        const { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
+        const {
+          getFirestore, collection, doc, getDocs, setDoc, deleteDoc, serverTimestamp
+        } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
+
+        firebaseApp = initializeApp(firebaseConfig);
+        auth = getAuth(firebaseApp);
+        db = getFirestore(firebaseApp);
+        firebaseReady = true;
+
+        window.firebaseApi = { signInWithEmailAndPassword, signOut, onAuthStateChanged, collection, doc, getDocs, setDoc, deleteDoc, serverTimestamp };
+        document.getElementById("firebaseStatus").textContent = "Firebase config found. Online sync is available.";
+      }
+    } catch (error) {
+      console.error("Firebase init error:", error);
+      document.getElementById("firebaseStatus").textContent = "Firebase could not initialize. App will continue in local demo mode.";
+    }
+
+    /***********************************************************************
+     * STATE
+     ***********************************************************************/
+
+    const STORAGE_KEY = "dentalPmsStarterData_v1";
+
+    const defaultData = {
+      settings: {
+        clinicName: "Your Dental Clinic",
+        providerName: "Dr. Provider",
+        timezone: "Asia/Manila",
+        currency: "PHP"
+      },
+      patients: [
+        {
+          id: uid(), chartNo: "P-1001", firstName: "Maria", lastName: "Santos", birthDate: "1992-04-12", gender: "Female",
+          phone: "+63 900 000 0000", email: "maria@example.com", address: "Manila",
+          allergies: "Penicillin", medicalAlerts: "High blood pressure", insurance: "Sample HMO", balance: 1500,
+          status: "Active", createdAt: nowISO()
+        },
+        {
+          id: uid(), chartNo: "P-1002", firstName: "Juan", lastName: "Dela Cruz", birthDate: "1988-11-22", gender: "Male",
+          phone: "+63 911 111 1111", email: "juan@example.com", address: "Quezon City",
+          allergies: "None", medicalAlerts: "None", insurance: "Self Pay", balance: 0,
+          status: "Active", createdAt: nowISO()
+        }
+      ],
+      appointments: [],
+      chartNotes: [],
+      toothStatuses: {},
+      treatmentPlans: [],
+      ledger: [],
+      commlog: [],
+      tasks: []
+    };
+
+    let data = loadLocalData();
+    let selectedPatientId = data.patients[0]?.id || null;
+    let selectedTeeth = [];
+
+    seedDemoData();
+
+    /***********************************************************************
+     * AUTH
+     ***********************************************************************/
+
+    window.login = async function login() {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+
+      if (!email || !password) {
+        alert("Enter email and password, tiny gatekeeping ritual included.");
+        return;
+      }
+
+      if (firebaseReady && auth) {
+        try {
+          const credential = await window.firebaseApi.signInWithEmailAndPassword(auth, email, password);
+          currentUser = credential.user;
+          await loadFromFirebase();
+          enterApp(email);
+        } catch (error) {
+          alert("Firebase login failed: " + error.message);
+        }
+      } else {
+        currentUser = { uid: "demo-local", email };
+        enterApp(email + " (Local Mode)");
+      }
+    };
+
+    window.demoLogin = function demoLogin() {
+      currentUser = { uid: "demo-local", email: "demo@clinic.local" };
+      enterApp("demo@clinic.local");
+    };
+
+    window.logout = async function logout() {
+      if (firebaseReady && auth) {
+        try { await window.firebaseApi.signOut(auth); } catch (e) { console.warn(e); }
+      }
+      document.getElementById("app").classList.add("hidden");
+      document.getElementById("loginScreen").classList.remove("hidden");
+    };
+
+    function enterApp(email) {
+      document.getElementById("currentUserDisplay").textContent = email;
+      document.getElementById("loginScreen").classList.add("hidden");
+      document.getElementById("app").classList.remove("hidden");
+      renderAll();
+    }
+
+    /***********************************************************************
+     * FIREBASE SYNC
+     ***********************************************************************/
+
+    async function save() {
+      data.updatedAt = nowISO();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      if (firebaseReady && currentUser?.uid && currentUser.uid !== "demo-local") {
+        await saveToFirebase();
+      }
+    }
+
+    async function saveToFirebase() {
+      const { doc, setDoc, serverTimestamp } = window.firebaseApi;
+      await setDoc(doc(db, "clinics", currentUser.uid), {
+        ...data,
+        updatedServerAt: serverTimestamp()
+      }, { merge: true });
+    }
+
+    async function loadFromFirebase() {
+      const { doc, getDocs, collection } = window.firebaseApi;
+      const snapshot = await getDocs(collection(db, "clinics"));
+      let found = null;
+      snapshot.forEach(item => {
+        if (item.id === currentUser.uid) found = item.data();
+      });
+      if (found) {
+        data = { ...defaultData, ...found };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      }
+    }
+
+    /***********************************************************************
+     * RENDERING
+     ***********************************************************************/
+
+    function renderAll() {
+      document.getElementById("clinicNameDisplay").textContent = data.settings.clinicName;
+      renderDashboard();
+      renderPatients();
+      renderAppointments();
+      renderCharting();
+      renderTreatment();
+      renderBilling();
+      renderCommlog();
+      renderTasks();
+      renderReports();
+      renderSettings();
+    }
+
+    window.showPage = function showPage(page) {
+      document.querySelectorAll(".page").forEach(el => el.classList.add("hidden"));
+      document.getElementById(`page-${page}`).classList.remove("hidden");
+      document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
+      document.querySelector(`[data-page='${page}']`)?.classList.add("active");
+
+      const titles = {
+        dashboard: ["Dashboard", "Clinic overview and daily activity"],
+        patients: ["Patients", "Patient records, medical alerts, and chart numbers"],
+        appointments: ["Appointments", "Daily schedule and appointment management"],
+        charting: ["Charting", "Tooth chart, clinical notes, and treatment history"],
+        treatment: ["Treatment Plans", "Planned, accepted, and completed procedures"],
+        billing: ["Billing", "Ledger, payments, charges, and balances"],
+        commlog: ["Commlog", "Calls, texts, emails, and patient contact history"],
+        tasks: ["Tasks", "Clinic follow-ups and internal work queue"],
+        reports: ["Reports", "Operational and financial summary"],
+        settings: ["Settings", "Clinic preferences and Firebase notes"]
+      };
+
+      document.getElementById("pageTitle").textContent = titles[page][0];
+      document.getElementById("pageSubtitle").textContent = titles[page][1];
+    };
+
+    function renderDashboard() {
+      const today = todayISO();
+      const todaysAppointments = data.appointments.filter(a => a.date === today);
+      const openTasks = data.tasks.filter(t => t.status !== "Done");
+      const totalBalance = data.patients.reduce((sum, p) => sum + Number(p.balance || 0), 0);
+
+      document.getElementById("page-dashboard").innerHTML = `
+        <div class="grid grid-4">
+          <div class="stat-card"><div class="label">Patients</div><div class="value">${data.patients.length}</div></div>
+          <div class="stat-card"><div class="label">Today Appointments</div><div class="value">${todaysAppointments.length}</div></div>
+          <div class="stat-card"><div class="label">Open Tasks</div><div class="value">${openTasks.length}</div></div>
+          <div class="stat-card"><div class="label">Total Balance</div><div class="value">${money(totalBalance)}</div></div>
+        </div>
+        <div class="grid grid-2" style="margin-top:16px;">
+          <div class="card">
+            <h3>Today's Schedule</h3>
+            ${todaysAppointments.length ? todaysAppointments.map(a => appointmentMini(a)).join("") : `<p style="color:var(--muted)">No appointments today. Suspiciously peaceful.</p>`}
+          </div>
+          <div class="card">
+            <h3>Recent Activity</h3>
+            ${recentActivity()}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPatients(filter = "") {
+      const patients = data.patients.filter(p => fullName(p).toLowerCase().includes(filter.toLowerCase()) || p.chartNo.toLowerCase().includes(filter.toLowerCase()) || (p.phone || "").includes(filter));
+      document.getElementById("page-patients").innerHTML = `
+        <div class="card">
+          <div class="toolbar">
+            <input class="search" placeholder="Search patient, chart no, phone..." oninput="renderPatients(this.value)" value="${escapeHtml(filter)}" />
+            <button onclick="openPatientForm()">+ New Patient</button>
+          </div>
+          <table>
+            <thead><tr><th>Chart No</th><th>Name</th><th>Phone</th><th>Medical Alerts</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${patients.map(p => `
+                <tr>
+                  <td><strong>${p.chartNo}</strong></td>
+                  <td>${fullName(p)}<br><span style="color:var(--muted);font-size:12px;">${p.email || "No email"}</span></td>
+                  <td>${p.phone || ""}</td>
+                  <td>${p.medicalAlerts || "None"}<br><span style="color:var(--muted);font-size:12px;">Allergies: ${p.allergies || "None"}</span></td>
+                  <td>${money(p.balance || 0)}</td>
+                  <td><span class="badge success">${p.status}</span></td>
+                  <td>
+                    <button class="small" onclick="selectPatient('${p.id}')">Open</button>
+                    <button class="small secondary" onclick="openPatientForm('${p.id}')">Edit</button>
+                  </td>
+                </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderAppointments() {
+      const today = todayISO();
+      document.getElementById("page-appointments").innerHTML = `
+        <div class="card">
+          <div class="toolbar">
+            <input type="date" id="apptDateFilter" value="${today}" onchange="renderAppointmentBoard(this.value)" style="max-width:180px;" />
+            <button onclick="openAppointmentForm()">+ New Appointment</button>
+          </div>
+          <div id="appointmentBoard"></div>
+        </div>
+      `;
+      renderAppointmentBoard(today);
+    }
+
+    window.renderAppointmentBoard = function renderAppointmentBoard(date) {
+      const hours = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00"];
+      const ops = ["Op 1", "Op 2", "Op 3", "Hygiene", "Consult"];
+      const board = document.getElementById("appointmentBoard");
+      board.innerHTML = `
+        <div class="calendar-board">
+          <div class="calendar-head">Time</div>
+          ${ops.map(o => `<div class="calendar-head">${o}</div>`).join("")}
+          ${hours.map(hour => `
+            <div class="time-slot">${hour}</div>
+            ${ops.map(op => `<div class="appt-slot">${data.appointments.filter(a => a.date === date && a.time === hour && a.operatory === op).map(a => appointmentChip(a)).join("")}</div>`).join("")}
+          `).join("")}
+        </div>
+      `;
+    };
+
+    function renderCharting() {
+      const patient = getSelectedPatient();
+      document.getElementById("page-charting").innerHTML = `
+        ${patientHeader(patient)}
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="toolbar">
+              <select onchange="selectedPatientId=this.value; selectedTeeth=[]; renderAll();" value="${selectedPatientId || ""}">
+                ${data.patients.map(p => `<option value="${p.id}" ${p.id === selectedPatientId ? "selected" : ""}>${p.chartNo} - ${fullName(p)}</option>`).join("")}
+              </select>
+            </div>
+            <h3>Tooth Chart</h3>
+            <div class="tooth-chart">
+              <div class="arch">${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].map(toothButton).join("")}</div>
+              <div class="arch">${[32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17].map(toothButton).join("")}</div>
+            </div>
+            <div class="toolbar" style="margin-top:14px;">
+              <button class="warning" onclick="markTeeth('treatment')">Mark Treatment</button>
+              <button class="success" onclick="markTeeth('completed')">Mark Completed</button>
+              <button class="danger" onclick="markTeeth('problem')">Mark Problem</button>
+              <button class="secondary" onclick="markTeeth('clear')">Clear</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Add Clinical Note</h3>
+            <div class="form-row">
+              <div><label>Provider</label><input id="noteProvider" value="${escapeHtml(data.settings.providerName)}" /></div>
+              <div><label>Tooth/Area</label><input id="noteTooth" placeholder="Example: #3, UR, Full mouth" value="${selectedTeeth.join(', ')}" /></div>
+            </div>
+            <label>Procedure / Note</label>
+            <textarea id="noteBody" placeholder="Clinical note, diagnosis, procedure, next visit..."></textarea>
+            <div class="toolbar" style="margin-top:10px;"><button onclick="addChartNote()">Save Note</button></div>
+            <h3 style="margin-top:20px;">Clinical History</h3>
+            ${chartHistory(patient?.id)}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTreatment() {
+      const patient = getSelectedPatient();
+      const plans = data.treatmentPlans.filter(t => !selectedPatientId || t.patientId === selectedPatientId);
+      document.getElementById("page-treatment").innerHTML = `
+        ${patientHeader(patient)}
+        <div class="card">
+          <div class="toolbar">
+            <select onchange="selectedPatientId=this.value; renderAll();" style="max-width:360px;">
+              ${data.patients.map(p => `<option value="${p.id}" ${p.id === selectedPatientId ? "selected" : ""}>${p.chartNo} - ${fullName(p)}</option>`).join("")}
+            </select>
+            <button onclick="openTreatmentForm()">+ Add Treatment</button>
+          </div>
+          <table>
+            <thead><tr><th>Date</th><th>Tooth</th><th>Procedure</th><th>Status</th><th>Fee</th><th>Actions</th></tr></thead>
+            <tbody>${plans.map(t => `
+              <tr>
+                <td>${t.date}</td><td>${t.tooth || ""}</td><td>${t.procedure}<br><span style="color:var(--muted);font-size:12px;">${t.notes || ""}</span></td>
+                <td>${statusBadge(t.status)}</td><td>${money(t.fee || 0)}</td>
+                <td><button class="small success" onclick="completeTreatment('${t.id}')">Complete</button> <button class="small secondary" onclick="openTreatmentForm('${t.id}')">Edit</button></td>
+              </tr>`).join("")}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderBilling() {
+      const patient = getSelectedPatient();
+      const items = data.ledger.filter(l => !selectedPatientId || l.patientId === selectedPatientId).sort((a,b) => b.date.localeCompare(a.date));
+      document.getElementById("page-billing").innerHTML = `
+        ${patientHeader(patient)}
+        <div class="card">
+          <div class="toolbar">
+            <select onchange="selectedPatientId=this.value; renderAll();" style="max-width:360px;">
+              ${data.patients.map(p => `<option value="${p.id}" ${p.id === selectedPatientId ? "selected" : ""}>${p.chartNo} - ${fullName(p)}</option>`).join("")}
+            </select>
+            <button onclick="openLedgerForm('Charge')">+ Charge</button>
+            <button class="success" onclick="openLedgerForm('Payment')">+ Payment</button>
+          </div>
+          <table>
+            <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th><th>Provider</th></tr></thead>
+            <tbody>${items.map(l => `
+              <tr><td>${l.date}</td><td>${ledgerBadge(l.type)}</td><td>${l.description}</td><td>${money(l.amount || 0)}</td><td>${l.provider || ""}</td></tr>`).join("")}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderCommlog() {
+      const patient = getSelectedPatient();
+      const logs = data.commlog.filter(c => !selectedPatientId || c.patientId === selectedPatientId).sort((a,b) => b.date.localeCompare(a.date));
+      document.getElementById("page-commlog").innerHTML = `
+        ${patientHeader(patient)}
+        <div class="card">
+          <div class="toolbar">
+            <select onchange="selectedPatientId=this.value; renderAll();" style="max-width:360px;">
+              ${data.patients.map(p => `<option value="${p.id}" ${p.id === selectedPatientId ? "selected" : ""}>${p.chartNo} - ${fullName(p)}</option>`).join("")}
+            </select>
+            <button onclick="openCommlogForm()">+ Add Communication</button>
+          </div>
+          ${logs.map(c => `<div class="timeline-item"><div class="meta">${c.date} • ${c.type} • ${c.user || "Staff"}</div><div class="body">${escapeHtml(c.note)}</div></div>`).join("") || `<p style="color:var(--muted)">No communication logs yet.</p>`}
+        </div>
+      `;
+    }
+
+    function renderTasks() {
+      const tasks = data.tasks.sort((a,b) => (a.dueDate || "").localeCompare(b.dueDate || ""));
+      document.getElementById("page-tasks").innerHTML = `
+        <div class="card">
+          <div class="toolbar"><button onclick="openTaskForm()">+ New Task</button></div>
+          <table>
+            <thead><tr><th>Due</th><th>Task</th><th>Patient</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>${tasks.map(t => `
+              <tr>
+                <td>${t.dueDate || ""}</td><td>${t.title}<br><span style="color:var(--muted);font-size:12px;">${t.notes || ""}</span></td>
+                <td>${fullName(getPatient(t.patientId)) || "General"}</td><td>${priorityBadge(t.priority)}</td><td>${statusBadge(t.status)}</td>
+                <td><button class="small success" onclick="completeTask('${t.id}')">Done</button> <button class="small secondary" onclick="openTaskForm('${t.id}')">Edit</button></td>
+              </tr>`).join("")}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderReports() {
+      const charges = data.ledger.filter(l => l.type === "Charge").reduce((s,l) => s + Number(l.amount || 0), 0);
+      const payments = data.ledger.filter(l => l.type === "Payment").reduce((s,l) => s + Number(l.amount || 0), 0);
+      const treatmentTotal = data.treatmentPlans.reduce((s,t) => s + Number(t.fee || 0), 0);
+      const completed = data.treatmentPlans.filter(t => t.status === "Completed").length;
+
+      document.getElementById("page-reports").innerHTML = `
+        <div class="grid grid-4">
+          <div class="stat-card"><div class="label">Total Charges</div><div class="value">${money(charges)}</div></div>
+          <div class="stat-card"><div class="label">Total Payments</div><div class="value">${money(payments)}</div></div>
+          <div class="stat-card"><div class="label">Planned Treatment</div><div class="value">${money(treatmentTotal)}</div></div>
+          <div class="stat-card"><div class="label">Completed Procedures</div><div class="value">${completed}</div></div>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <h3>Report Notes</h3>
+          <p style="color:var(--muted)">This section can later be expanded with production reports, aging AR, no-show rate, provider productivity, insurance estimates, and monthly collections. Because apparently numbers are only happy when arranged into more numbers.</p>
+        </div>
+      `;
+    }
+
+    function renderSettings() {
+      document.getElementById("page-settings").innerHTML = `
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>Clinic Settings</h3>
+            <div class="form-row">
+              <div><label>Clinic Name</label><input id="settingClinic" value="${escapeHtml(data.settings.clinicName)}" /></div>
+              <div><label>Default Provider</label><input id="settingProvider" value="${escapeHtml(data.settings.providerName)}" /></div>
+            </div>
+            <div class="form-row">
+              <div><label>Timezone</label><input id="settingTimezone" value="${escapeHtml(data.settings.timezone)}" /></div>
+              <div><label>Currency</label><input id="settingCurrency" value="${escapeHtml(data.settings.currency)}" /></div>
+            </div>
+            <button onclick="saveSettings()">Save Settings</button>
+          </div>
+          <div class="card">
+            <h3>Firebase Setup Checklist</h3>
+            <ol style="line-height:1.8;color:var(--muted)">
+              <li>Create Firebase project</li>
+              <li>Enable Authentication > Email/Password</li>
+              <li>Create Firestore Database</li>
+              <li>Paste Firebase web config inside this file</li>
+              <li>Add security rules before real clinic use</li>
+              <li>Deploy with Netlify, Firebase Hosting, or GoDaddy</li>
+            </ol>
+          </div>
+        </div>
+      `;
+    }
+
+    /***********************************************************************
+     * FORMS / ACTIONS
+     ***********************************************************************/
+
+    window.openPatientForm = function openPatientForm(id = null) {
+      const p = id ? getPatient(id) : {};
+      openModal(id ? "Edit Patient" : "New Patient", "Patient record", `
+        <div class="form-row three">
+          <div><label>Chart No</label><input id="pChartNo" value="${escapeHtml(p.chartNo || nextChartNo())}" /></div>
+          <div><label>First Name</label><input id="pFirst" value="${escapeHtml(p.firstName || "")}" /></div>
+          <div><label>Last Name</label><input id="pLast" value="${escapeHtml(p.lastName || "")}" /></div>
+        </div>
+        <div class="form-row three">
+          <div><label>Birth Date</label><input id="pBirth" type="date" value="${p.birthDate || ""}" /></div>
+          <div><label>Gender</label><select id="pGender"><option ${p.gender==="Male"?"selected":""}>Male</option><option ${p.gender==="Female"?"selected":""}>Female</option><option ${p.gender==="Other"?"selected":""}>Other</option></select></div>
+          <div><label>Status</label><select id="pStatus"><option ${p.status==="Active"?"selected":""}>Active</option><option ${p.status==="Inactive"?"selected":""}>Inactive</option></select></div>
+        </div>
+        <div class="form-row">
+          <div><label>Phone</label><input id="pPhone" value="${escapeHtml(p.phone || "")}" /></div>
+          <div><label>Email</label><input id="pEmail" value="${escapeHtml(p.email || "")}" /></div>
+        </div>
+        <div><label>Address</label><input id="pAddress" value="${escapeHtml(p.address || "")}" /></div><br>
+        <div class="form-row three">
+          <div><label>Allergies</label><input id="pAllergies" value="${escapeHtml(p.allergies || "")}" /></div>
+          <div><label>Medical Alerts</label><input id="pMedical" value="${escapeHtml(p.medicalAlerts || "")}" /></div>
+          <div><label>Insurance</label><input id="pInsurance" value="${escapeHtml(p.insurance || "")}" /></div>
+        </div>
+        <button onclick="savePatient('${id || ""}')">Save Patient</button>
+      `);
+    };
+
+    window.savePatient = async function savePatient(id) {
+      const patient = {
+        id: id || uid(),
+        chartNo: val("pChartNo"), firstName: val("pFirst"), lastName: val("pLast"), birthDate: val("pBirth"), gender: val("pGender"), status: val("pStatus"),
+        phone: val("pPhone"), email: val("pEmail"), address: val("pAddress"), allergies: val("pAllergies"), medicalAlerts: val("pMedical"), insurance: val("pInsurance"),
+        balance: id ? Number(getPatient(id).balance || 0) : 0,
+        createdAt: id ? getPatient(id).createdAt : nowISO()
+      };
+      if (!patient.firstName || !patient.lastName) return alert("Name is required.");
+      const index = data.patients.findIndex(x => x.id === patient.id);
+      if (index >= 0) data.patients[index] = patient; else data.patients.push(patient);
+      selectedPatientId = patient.id;
+      await save(); closeModal(); renderAll();
+    };
+
+    window.openAppointmentForm = function openAppointmentForm(id = null) {
+      const a = id ? data.appointments.find(x => x.id === id) : {};
+      openModal(id ? "Edit Appointment" : "New Appointment", "Schedule visit", `
+        <div class="form-row three">
+          <div><label>Patient</label><select id="aPatient">${patientOptions(a.patientId || selectedPatientId)}</select></div>
+          <div><label>Date</label><input id="aDate" type="date" value="${a.date || todayISO()}" /></div>
+          <div><label>Time</label><input id="aTime" type="time" value="${a.time || "09:00"}" /></div>
+        </div>
+        <div class="form-row three">
+          <div><label>Operatory</label><select id="aOp"><option>Op 1</option><option>Op 2</option><option>Op 3</option><option>Hygiene</option><option>Consult</option></select></div>
+          <div><label>Provider</label><input id="aProvider" value="${escapeHtml(a.provider || data.settings.providerName)}" /></div>
+          <div><label>Status</label><select id="aStatus"><option>Scheduled</option><option>Confirmed</option><option>Arrived</option><option>Completed</option><option>No Show</option><option>Cancelled</option></select></div>
+        </div>
+        <label>Reason</label><input id="aReason" value="${escapeHtml(a.reason || "")}" placeholder="Cleaning, extraction, consult..." /><br><br>
+        <label>Notes</label><textarea id="aNotes">${escapeHtml(a.notes || "")}</textarea>
+        <button onclick="saveAppointment('${id || ""}')">Save Appointment</button>
+      `);
+      setSelectValue("aOp", a.operatory || "Op 1");
+      setSelectValue("aStatus", a.status || "Scheduled");
+    };
+
+    window.saveAppointment = async function saveAppointment(id) {
+      const appt = { id: id || uid(), patientId: val("aPatient"), date: val("aDate"), time: val("aTime"), operatory: val("aOp"), provider: val("aProvider"), status: val("aStatus"), reason: val("aReason"), notes: val("aNotes"), createdAt: id ? findById(data.appointments,id).createdAt : nowISO() };
+      const index = data.appointments.findIndex(x => x.id === appt.id);
+      if (index >= 0) data.appointments[index] = appt; else data.appointments.push(appt);
+      await save(); closeModal(); renderAll();
+    };
+
+    window.selectPatient = function selectPatient(id) {
+      selectedPatientId = id;
+      showPage("charting");
+      renderAll();
+    };
+
+    window.toggleTooth = function toggleTooth(num) {
+      if (selectedTeeth.includes(num)) selectedTeeth = selectedTeeth.filter(t => t !== num);
+      else selectedTeeth.push(num);
+      renderCharting();
+    };
+
+    window.markTeeth = async function markTeeth(status) {
+      if (!selectedPatientId || selectedTeeth.length === 0) return alert("Select a patient and tooth first.");
+      data.toothStatuses[selectedPatientId] ||= {};
+      selectedTeeth.forEach(t => {
+        if (status === "clear") delete data.toothStatuses[selectedPatientId][t];
+        else data.toothStatuses[selectedPatientId][t] = status;
+      });
+      await save(); renderCharting();
+    };
+
+    window.addChartNote = async function addChartNote() {
+      if (!selectedPatientId) return alert("Select patient first.");
+      const note = { id: uid(), patientId: selectedPatientId, date: nowReadable(), provider: val("noteProvider"), tooth: val("noteTooth"), note: val("noteBody"), createdAt: nowISO() };
+      if (!note.note) return alert("Note is required.");
+      data.chartNotes.push(note);
+      await save(); renderAll();
+    };
+
+    window.openTreatmentForm = function openTreatmentForm(id = null) {
+      const t = id ? findById(data.treatmentPlans, id) : {};
+      openModal(id ? "Edit Treatment" : "Add Treatment", "Treatment planning", `
+        <div class="form-row three">
+          <div><label>Patient</label><select id="tPatient">${patientOptions(t.patientId || selectedPatientId)}</select></div>
+          <div><label>Date</label><input id="tDate" type="date" value="${t.date || todayISO()}" /></div>
+          <div><label>Tooth</label><input id="tTooth" value="${escapeHtml(t.tooth || selectedTeeth.join(', '))}" /></div>
+        </div>
+        <div class="form-row three">
+          <div><label>Procedure</label><input id="tProcedure" value="${escapeHtml(t.procedure || "")}" placeholder="Filling, Crown, Extraction..." /></div>
+          <div><label>Fee</label><input id="tFee" type="number" value="${t.fee || 0}" /></div>
+          <div><label>Status</label><select id="tStatus"><option>Planned</option><option>Presented</option><option>Accepted</option><option>Completed</option><option>Rejected</option></select></div>
+        </div>
+        <label>Notes</label><textarea id="tNotes">${escapeHtml(t.notes || "")}</textarea>
+        <button onclick="saveTreatment('${id || ""}')">Save Treatment</button>
+      `);
+      setSelectValue("tStatus", t.status || "Planned");
+    };
+
+    window.saveTreatment = async function saveTreatment(id) {
+      const t = { id: id || uid(), patientId: val("tPatient"), date: val("tDate"), tooth: val("tTooth"), procedure: val("tProcedure"), fee: Number(val("tFee") || 0), status: val("tStatus"), notes: val("tNotes"), createdAt: id ? findById(data.treatmentPlans,id).createdAt : nowISO() };
+      const index = data.treatmentPlans.findIndex(x => x.id === t.id);
+      if (index >= 0) data.treatmentPlans[index] = t; else data.treatmentPlans.push(t);
+      await save(); closeModal(); renderAll();
+    };
+
+    window.completeTreatment = async function completeTreatment(id) {
+      const t = findById(data.treatmentPlans, id); if (!t) return;
+      t.status = "Completed";
+      data.ledger.push({ id: uid(), patientId: t.patientId, date: todayISO(), type: "Charge", description: t.procedure, amount: Number(t.fee || 0), provider: data.settings.providerName, createdAt: nowISO() });
+      updatePatientBalance(t.patientId);
+      await save(); renderAll();
+    };
+
+    window.openLedgerForm = function openLedgerForm(type) {
+      openModal(`Add ${type}`, "Patient ledger", `
+        <div class="form-row three">
+          <div><label>Patient</label><select id="lPatient">${patientOptions(selectedPatientId)}</select></div>
+          <div><label>Date</label><input id="lDate" type="date" value="${todayISO()}" /></div>
+          <div><label>Type</label><select id="lType"><option>Charge</option><option>Payment</option><option>Adjustment</option></select></div>
+        </div>
+        <div class="form-row three">
+          <div><label>Description</label><input id="lDescription" placeholder="Procedure/payment note" /></div>
+          <div><label>Amount</label><input id="lAmount" type="number" value="0" /></div>
+          <div><label>Provider</label><input id="lProvider" value="${escapeHtml(data.settings.providerName)}" /></div>
+        </div>
+        <button onclick="saveLedger()">Save Ledger Item</button>
+      `);
+      setSelectValue("lType", type);
+    };
+
+    window.saveLedger = async function saveLedger() {
+      const item = { id: uid(), patientId: val("lPatient"), date: val("lDate"), type: val("lType"), description: val("lDescription"), amount: Number(val("lAmount") || 0), provider: val("lProvider"), createdAt: nowISO() };
+      data.ledger.push(item);
+      updatePatientBalance(item.patientId);
+      await save(); closeModal(); renderAll();
+    };
+
+    window.openCommlogForm = function openCommlogForm() {
+      openModal("Add Communication", "Calls, texts, emails, and notes", `
+        <div class="form-row three">
+          <div><label>Patient</label><select id="cPatient">${patientOptions(selectedPatientId)}</select></div>
+          <div><label>Date</label><input id="cDate" type="datetime-local" value="${localDateTime()}" /></div>
+          <div><label>Type</label><select id="cType"><option>Call</option><option>Text</option><option>Email</option><option>In Person</option><option>System Note</option></select></div>
+        </div>
+        <label>Note</label><textarea id="cNote"></textarea>
+        <button onclick="saveCommlog()">Save Communication</button>
+      `);
+    };
+
+    window.saveCommlog = async function saveCommlog() {
+      data.commlog.push({ id: uid(), patientId: val("cPatient"), date: val("cDate"), type: val("cType"), note: val("cNote"), user: currentUser?.email || "Staff", createdAt: nowISO() });
+      await save(); closeModal(); renderAll();
+    };
+
+    window.openTaskForm = function openTaskForm(id = null) {
+      const t = id ? findById(data.tasks,id) : {};
+      openModal(id ? "Edit Task" : "New Task", "Internal task queue", `
+        <div class="form-row three">
+          <div><label>Patient</label><select id="taskPatient"><option value="">General</option>${patientOptions(t.patientId || selectedPatientId)}</select></div>
+          <div><label>Due Date</label><input id="taskDue" type="date" value="${t.dueDate || todayISO()}" /></div>
+          <div><label>Priority</label><select id="taskPriority"><option>Low</option><option>Normal</option><option>High</option><option>Urgent</option></select></div>
+        </div>
+        <div class="form-row">
+          <div><label>Title</label><input id="taskTitle" value="${escapeHtml(t.title || "")}" /></div>
+          <div><label>Status</label><select id="taskStatus"><option>Open</option><option>Working</option><option>Done</option></select></div>
+        </div>
+        <label>Notes</label><textarea id="taskNotes">${escapeHtml(t.notes || "")}</textarea>
+        <button onclick="saveTask('${id || ""}')">Save Task</button>
+      `);
+      setSelectValue("taskPriority", t.priority || "Normal");
+      setSelectValue("taskStatus", t.status || "Open");
+      setSelectValue("taskPatient", t.patientId || "");
+    };
+
+    window.saveTask = async function saveTask(id) {
+      const task = { id: id || uid(), patientId: val("taskPatient"), dueDate: val("taskDue"), priority: val("taskPriority"), title: val("taskTitle"), status: val("taskStatus"), notes: val("taskNotes"), createdAt: id ? findById(data.tasks,id).createdAt : nowISO() };
+      const index = data.tasks.findIndex(x => x.id === task.id);
+      if (index >= 0) data.tasks[index] = task; else data.tasks.push(task);
+      await save(); closeModal(); renderAll();
+    };
+
+    window.completeTask = async function completeTask(id) {
+      const t = findById(data.tasks,id); if (!t) return;
+      t.status = "Done";
+      await save(); renderAll();
+    };
+
+    window.saveSettings = async function saveSettings() {
+      data.settings.clinicName = val("settingClinic");
+      data.settings.providerName = val("settingProvider");
+      data.settings.timezone = val("settingTimezone");
+      data.settings.currency = val("settingCurrency");
+      await save(); renderAll(); alert("Settings saved.");
+    };
+
+    window.backupData = function backupData() {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `dental-pms-backup-${todayISO()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    window.restoreData = function restoreData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async e => {
+        try {
+          data = JSON.parse(e.target.result);
+          await save(); renderAll(); alert("Backup restored.");
+        } catch {
+          alert("Invalid JSON backup file.");
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    /***********************************************************************
+     * HELPERS
+     ***********************************************************************/
+
+    function loadLocalData() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        return saved ? { ...defaultData, ...JSON.parse(saved) } : structuredClone(defaultData);
+      } catch { return structuredClone(defaultData); }
+    }
+
+    function seedDemoData() {
+      if (!data.appointments.length && data.patients.length) {
+        data.appointments.push({ id: uid(), patientId: data.patients[0].id, date: todayISO(), time: "09:00", operatory: "Op 1", provider: data.settings.providerName, status: "Confirmed", reason: "Recall cleaning", notes: "Demo appointment", createdAt: nowISO() });
+        data.treatmentPlans.push({ id: uid(), patientId: data.patients[0].id, date: todayISO(), tooth: "#19", procedure: "Composite Filling", fee: 2500, status: "Planned", notes: "MO restoration", createdAt: nowISO() });
+        data.ledger.push({ id: uid(), patientId: data.patients[0].id, date: todayISO(), type: "Charge", description: "Exam", amount: 1500, provider: data.settings.providerName, createdAt: nowISO() });
+        data.tasks.push({ id: uid(), patientId: data.patients[0].id, dueDate: todayISO(), priority: "Normal", title: "Confirm next visit", status: "Open", notes: "Call patient before appointment", createdAt: nowISO() });
+        updatePatientBalance(data.patients[0].id);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      }
+    }
+
+    function getPatient(id) { return data.patients.find(p => p.id === id) || null; }
+    function getSelectedPatient() { return getPatient(selectedPatientId) || data.patients[0] || null; }
+    function findById(list, id) { return list.find(x => x.id === id); }
+    function fullName(p) { return p ? `${p.firstName || ""} ${p.lastName || ""}`.trim() : ""; }
+    function uid() { return crypto.randomUUID ? crypto.randomUUID() : "id-" + Math.random().toString(36).slice(2) + Date.now(); }
+    function nowISO() { return new Date().toISOString(); }
+    function todayISO() { return new Date().toISOString().slice(0,10); }
+    function nowReadable() { return new Date().toLocaleString(); }
+    function localDateTime() { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,16); }
+    function val(id) { return document.getElementById(id)?.value?.trim() || ""; }
+    function money(n) { return new Intl.NumberFormat(undefined, { style: "currency", currency: data.settings.currency || "PHP", maximumFractionDigits: 0 }).format(Number(n || 0)); }
+    function escapeHtml(str) { return String(str ?? "").replace(/[&<>'"]/g, s => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[s])); }
+    function setSelectValue(id, value) { const el = document.getElementById(id); if (el) el.value = value; }
+    function nextChartNo() { return "P-" + String(1001 + data.patients.length).padStart(4, "0"); }
+
+    function patientOptions(selected) {
+      return data.patients.map(p => `<option value="${p.id}" ${p.id === selected ? "selected" : ""}>${p.chartNo} - ${fullName(p)}</option>`).join("");
+    }
+
+    function patientHeader(patient) {
+      if (!patient) return `<div class="notice">No patient selected.</div>`;
+      return `
+        <div class="patient-banner">
+          <div class="box"><div class="title">Patient</div><div class="content">${patient.chartNo} - ${fullName(patient)}</div></div>
+          <div class="box"><div class="title">Medical Alerts</div><div class="content">${patient.medicalAlerts || "None"}</div></div>
+          <div class="box"><div class="title">Balance</div><div class="content">${money(patient.balance || 0)}</div></div>
+        </div>
+      `;
+    }
+
+    function toothButton(n) {
+      const status = data.toothStatuses[selectedPatientId]?.[n] || "";
+      const selected = selectedTeeth.includes(n);
+      return `<button class="tooth ${status} ${selected ? "selected" : ""}" onclick="toggleTooth(${n})">${n}</button>`;
+    }
+
+    function chartHistory(patientId) {
+      const notes = data.chartNotes.filter(n => n.patientId === patientId).sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+      return notes.map(n => `<div class="timeline-item"><div class="meta">${n.date} • ${n.provider} • ${n.tooth || "No tooth"}</div><div class="body">${escapeHtml(n.note)}</div></div>`).join("") || `<p style="color:var(--muted)">No clinical notes yet.</p>`;
+    }
+
+    function appointmentMini(a) {
+      const p = getPatient(a.patientId);
+      return `<div class="timeline-item"><div class="meta">${a.time} • ${a.operatory} • ${a.status}</div><div class="body"><strong>${fullName(p)}</strong><br>${a.reason || "Appointment"}</div></div>`;
+    }
+
+    function appointmentChip(a) {
+      const p = getPatient(a.patientId);
+      return `<div class="appt-chip" onclick="openAppointmentForm('${a.id}')">${fullName(p)}<br>${a.reason || "Visit"}<br>${a.status}</div>`;
+    }
+
+    function recentActivity() {
+      const items = [
+        ...data.chartNotes.map(x => ({ date: x.createdAt, text: `Chart note: ${fullName(getPatient(x.patientId))}` })),
+        ...data.ledger.map(x => ({ date: x.createdAt, text: `${x.type}: ${fullName(getPatient(x.patientId))} - ${money(x.amount)}` })),
+        ...data.commlog.map(x => ({ date: x.createdAt, text: `${x.type}: ${fullName(getPatient(x.patientId))}` }))
+      ].sort((a,b) => b.date.localeCompare(a.date)).slice(0,8);
+      return items.map(i => `<div class="timeline-item"><div class="meta">${new Date(i.date).toLocaleString()}</div><div class="body">${escapeHtml(i.text)}</div></div>`).join("") || `<p style="color:var(--muted)">No recent activity.</p>`;
+    }
+
+    function updatePatientBalance(patientId) {
+      const patient = getPatient(patientId); if (!patient) return;
+      const balance = data.ledger.filter(l => l.patientId === patientId).reduce((sum, item) => {
+        if (item.type === "Payment") return sum - Number(item.amount || 0);
+        if (item.type === "Adjustment") return sum + Number(item.amount || 0);
+        return sum + Number(item.amount || 0);
+      }, 0);
+      patient.balance = balance;
+    }
+
+    function statusBadge(status) {
+      const cls = status === "Completed" || status === "Done" ? "success" : status === "Urgent" || status === "No Show" || status === "Cancelled" ? "danger" : status === "Accepted" || status === "Working" ? "primary" : "warning";
+      return `<span class="badge ${cls}">${status}</span>`;
+    }
+
+    function ledgerBadge(type) {
+      const cls = type === "Payment" ? "success" : type === "Adjustment" ? "purple" : "warning";
+      return `<span class="badge ${cls}">${type}</span>`;
+    }
+
+    function priorityBadge(priority) {
+      const cls = priority === "Urgent" ? "danger" : priority === "High" ? "warning" : priority === "Low" ? "primary" : "success";
+      return `<span class="badge ${cls}">${priority}</span>`;
+    }
+
+    function openModal(title, subtitle, body) {
+      document.getElementById("modalTitle").textContent = title;
+      document.getElementById("modalSubtitle").textContent = subtitle;
+      document.getElementById("modalBody").innerHTML = body;
+      document.getElementById("modalBackdrop").classList.remove("hidden");
+    }
+
+    window.closeModal = function closeModal() {
+      document.getElementById("modalBackdrop").classList.add("hidden");
+    };
+
+    window.renderPatients = renderPatients;
+  </script>
+</body>
+</html>
